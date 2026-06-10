@@ -6,12 +6,15 @@ import ffmpeg from 'ffmpeg-static';
 import fs from 'fs';
 import path from 'path';
 
+const MODE = process.env.MODE === 'dark' ? 'dark' : 'light';
+const SUFFIX = MODE === 'dark' ? '-dark' : '';
+
 const OUT = path.resolve('out');
 const MEDIA = path.resolve('..', '..', 'docs', 'media');
 fs.mkdirSync(MEDIA, { recursive: true });
 
-const input = path.join(OUT, 'mobile-demo.webm');
-const timings = JSON.parse(fs.readFileSync(path.join(OUT, 'timings.json'), 'utf8'));
+const input = path.join(OUT, `mobile-demo${SUFFIX}.webm`);
+const timings = JSON.parse(fs.readFileSync(path.join(OUT, `timings${SUFFIX}.json`), 'utf8'));
 
 function run(args) {
   console.log('ffmpeg', args.join(' '));
@@ -25,7 +28,7 @@ run([
   '-vf', 'scale=trunc(iw/2)*2:trunc(ih/2)*2',
   '-c:v', 'libx264', '-preset', 'slow', '-crf', '26',
   '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an',
-  path.join(MEDIA, 'demo.mp4'),
+  path.join(MEDIA, `demo${SUFFIX}.mp4`),
 ]);
 
 // 2) README GIF: the feed -> story viewer -> explore stretch, sped up 1.5x
@@ -43,7 +46,7 @@ run([
 run([
   '-y', '-ss', String(gifStart), '-t', String(duration), '-i', input, '-i', palette,
   '-lavfi', `setpts=PTS/${speed},fps=11,scale=340:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`,
-  path.join(MEDIA, 'demo.gif'),
+  path.join(MEDIA, `demo${SUFFIX}.gif`),
 ]);
 
 // 3) Copy screenshots

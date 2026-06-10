@@ -3,11 +3,17 @@
 A full-stack Instagram-style social platform: feed, stories, reels, direct messages, notifications, explore/search, profiles — built with React 18 + TypeScript on the front and Express + TypeScript + Prisma + PostgreSQL + Redis + Socket.io on the back.
 
 <p align="center">
-  <img src="docs/media/demo.gif" alt="Snaploop demo — login, feed, stories, explore" width="340" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/demo-dark.gif" />
+    <img src="docs/media/demo.gif" alt="Snaploop demo — login, feed, stories, explore" width="340" />
+  </picture>
 </p>
 
 <p align="center">
-  🎬 <a href="docs/media/demo.mp4">Full demo video (46s)</a> &nbsp;·&nbsp; 🖼️ <a href="#screenshots">Screenshots</a>
+  🎬 Demo video: <a href="docs/media/demo.mp4">light</a> / <a href="docs/media/demo-dark.mp4">dark</a>
+  &nbsp;·&nbsp; 🖼️ <a href="#screenshots">Screenshots</a>
+  <br />
+  <sub>The GIF above follows your GitHub theme — light and dark variants of every asset live in <code>docs/media/</code>.</sub>
 </p>
 
 ## Screenshots
@@ -33,6 +39,29 @@ A full-stack Instagram-style social platform: feed, stories, reels, direct messa
 | Messages | Profile |
 | :---: | :---: |
 | ![Desktop messages](docs/media/desktop-04-messages.png) | ![Desktop profile](docs/media/desktop-05-profile.png) |
+
+<details>
+<summary><b>🌙 Dark mode</b> (click to expand)</summary>
+
+| Feed | Stories | Explore |
+| :---: | :---: | :---: |
+| ![Feed dark](docs/media/mobile-02-feed-dark.png) | ![Story viewer dark](docs/media/mobile-03-story-dark.png) | ![Explore dark](docs/media/mobile-04-explore-dark.png) |
+
+| Messages | Notifications | Profile |
+| :---: | :---: | :---: |
+| ![DM thread dark](docs/media/mobile-07-dm-thread-dark.png) | ![Notifications dark](docs/media/mobile-08-notifications-dark.png) | ![Profile dark](docs/media/mobile-09-profile-dark.png) |
+
+| Desktop feed | Desktop post detail |
+| :---: | :---: |
+| ![Desktop feed dark](docs/media/desktop-01-feed-dark.png) | ![Post detail dark](docs/media/desktop-03-post-detail-dark.png) |
+
+| Desktop messages | Desktop profile |
+| :---: | :---: |
+| ![Desktop messages dark](docs/media/desktop-04-messages-dark.png) | ![Desktop profile dark](docs/media/desktop-05-profile-dark.png) |
+
+More: [login](docs/media/mobile-01-login-dark.png) · [reels](docs/media/mobile-05-reels-dark.png) · [DM inbox](docs/media/mobile-06-dm-inbox-dark.png) · [create](docs/media/mobile-10-create-dark.png) · [desktop explore](docs/media/desktop-02-explore-dark.png)
+
+</details>
 
 ## Features
 

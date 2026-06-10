@@ -5,6 +5,11 @@ import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
+// MODE=dark captures the same walkthrough with prefers-color-scheme: dark
+// (the app's pre-paint theme script picks it up) and suffixes all outputs.
+const MODE = process.env.MODE === 'dark' ? 'dark' : 'light';
+const SUFFIX = MODE === 'dark' ? '-dark' : '';
+
 const BASE = 'http://localhost:5173';
 const OUT = path.resolve('out');
 const SHOTS = path.join(OUT, 'shots');
@@ -22,8 +27,25 @@ const mark = (name) => {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function shot(page, name) {
-  await page.screenshot({ path: path.join(SHOTS, `${name}.png`) });
-  console.log(`  shot: ${name}.png`);
+  await page.screenshot({ path: path.join(SHOTS, `${name}${SUFFIX}.png`) });
+  console.log(`  shot: ${name}${SUFFIX}.png`);
+}
+
+// Remote placeholder images (picsum/pravatar) can be slow on a cold cache —
+// wait until at least `min` images have real pixels before shooting.
+async function waitForImages(page, min = 5, timeout = 15000) {
+  await page
+    .waitForFunction(
+      (want) => {
+        const imgs = [...document.querySelectorAll('img')];
+        if (imgs.length === 0) return false;
+        const loaded = imgs.filter((i) => i.complete && i.naturalWidth > 0).length;
+        return loaded >= Math.min(want, imgs.length);
+      },
+      min,
+      { timeout }
+    )
+    .catch(() => console.warn('  (images still loading, shooting anyway)'));
 }
 
 async function login(page) {
@@ -45,6 +67,7 @@ const browser = await chromium.launch();
 const mobile = await browser.newContext({
   viewport: { width: 390, height: 844 },
   deviceScaleFactor: 2,
+  colorScheme: MODE,
   recordVideo: { dir: VIDEO, size: { width: 390, height: 844 } },
 });
 const page = await mobile.newPage();
@@ -62,7 +85,8 @@ await sleep(300);
 await page.locator('button[type="submit"]').click();
 await page.waitForURL(`${BASE}/`, { timeout: 15000 });
 mark('feed');
-await sleep(3500); // let avatars + first post images land
+await waitForImages(page, 8);
+await sleep(1500);
 await shot(page, 'mobile-02-feed');
 // slow scroll through a couple of posts
 for (let i = 0; i < 5; i++) {
@@ -95,7 +119,8 @@ if (await trayItem.count()) {
 
 mark('explore');
 await page.goto(`${BASE}/explore`);
-await sleep(3000);
+await waitForImages(page, 6);
+await sleep(1200);
 await shot(page, 'mobile-04-explore');
 await page.mouse.wheel(0, 700);
 await sleep(1300);
@@ -113,7 +138,10 @@ await page.getByText('Weekend plans').first().click();
 await sleep(2000);
 const composer = page.locator('textarea').first();
 await composer.click();
-await page.keyboard.type('This app was built by Claude 🤖✨', { delay: 55 });
+await page.keyboard.type(
+  MODE === 'dark' ? 'Dark mode looks 🔥' : 'This app was built by Claude 🤖✨',
+  { delay: 55 }
+);
 await sleep(500);
 await page.keyboard.press('Enter');
 await sleep(1800);
@@ -126,7 +154,8 @@ await shot(page, 'mobile-08-notifications');
 
 mark('profile');
 await page.goto(`${BASE}/demo`);
-await sleep(3000);
+await waitForImages(page, 4);
+await sleep(1200);
 await shot(page, 'mobile-09-profile');
 await page.mouse.wheel(0, 500);
 await sleep(1200);
@@ -143,19 +172,21 @@ const state = await mobile.storageState();
 await page.close();
 await mobile.close();
 const videoFile = fs.readdirSync(VIDEO).find((f) => f.endsWith('.webm'));
-fs.renameSync(path.join(VIDEO, videoFile), path.join(OUT, 'mobile-demo.webm'));
+fs.renameSync(path.join(VIDEO, videoFile), path.join(OUT, `mobile-demo${SUFFIX}.webm`));
 
 // ───────────── Desktop pass (screenshots only) ─────────────
 const desktop = await browser.newContext({
   viewport: { width: 1440, height: 900 },
   deviceScaleFactor: 1.5,
+  colorScheme: MODE,
   storageState: state,
 });
 const d = await desktop.newPage();
 
 await d.goto(`${BASE}/`);
 await d.waitForSelector('nav');
-await sleep(3500);
+await waitForImages(d, 8);
+await sleep(1200);
 await shot(d, 'desktop-01-feed');
 
 await d.goto(`${BASE}/explore`);
@@ -182,5 +213,5 @@ await shot(d, 'desktop-05-profile');
 await desktop.close();
 await browser.close();
 
-fs.writeFileSync(path.join(OUT, 'timings.json'), JSON.stringify(timings, null, 2));
-console.log('\nDone. Video: out/mobile-demo.webm, shots: out/shots/, timings saved.');
+fs.writeFileSync(path.join(OUT, `timings${SUFFIX}.json`), JSON.stringify(timings, null, 2));
+console.log(`\nDone (${MODE}). Video: out/mobile-demo${SUFFIX}.webm, shots: out/shots/.`);
