@@ -31,15 +31,22 @@ export async function logout() {
   }
 }
 
-// Called once on app boot: restores the session from the refresh cookie.
-export async function bootstrapSession() {
-  try {
-    const { user } = await api.post<{ user: CurrentUser }>('/auth/refresh');
-    useAuthStore.getState().setUser(user);
-    connectSocket();
-  } catch {
-    useAuthStore.getState().clear();
-  }
+// Called on app boot: restores the session from the refresh cookie.
+// Deduped at module level — StrictMode double-mounts (and any stray second
+// caller) must not fire two refreshes, since rotation consumes the token.
+let bootstrapPromise: Promise<void> | null = null;
+
+export function bootstrapSession(): Promise<void> {
+  bootstrapPromise ??= (async () => {
+    try {
+      const { user } = await api.post<{ user: CurrentUser }>('/auth/refresh');
+      useAuthStore.getState().setUser(user);
+      connectSocket();
+    } catch {
+      useAuthStore.getState().clear();
+    }
+  })();
+  return bootstrapPromise;
 }
 
 export const forgotPassword = (email: string) => api.post('/auth/forgot-password', { email });

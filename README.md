@@ -2,6 +2,38 @@
 
 A full-stack Instagram-style social platform: feed, stories, reels, direct messages, notifications, explore/search, profiles — built with React 18 + TypeScript on the front and Express + TypeScript + Prisma + PostgreSQL + Redis + Socket.io on the back.
 
+<p align="center">
+  <img src="docs/media/demo.gif" alt="Snaploop demo — login, feed, stories, explore" width="340" />
+</p>
+
+<p align="center">
+  🎬 <a href="docs/media/demo.mp4">Full demo video (46s)</a> &nbsp;·&nbsp; 🖼️ <a href="#screenshots">Screenshots</a>
+</p>
+
+## Screenshots
+
+| Feed | Stories | Explore |
+| :---: | :---: | :---: |
+| ![Feed](docs/media/mobile-02-feed.png) | ![Story viewer](docs/media/mobile-03-story.png) | ![Explore](docs/media/mobile-04-explore.png) |
+
+| Reels | Messages | Notifications |
+| :---: | :---: | :---: |
+| ![Reels](docs/media/mobile-05-reels.png) | ![DM thread](docs/media/mobile-07-dm-thread.png) | ![Notifications](docs/media/mobile-08-notifications.png) |
+
+| Profile | Create | Login |
+| :---: | :---: | :---: |
+| ![Profile](docs/media/mobile-09-profile.png) | ![Create post](docs/media/mobile-10-create.png) | ![Login](docs/media/mobile-01-login.png) |
+
+**Desktop**
+
+| Home feed | Post detail |
+| :---: | :---: |
+| ![Desktop feed](docs/media/desktop-01-feed.png) | ![Post detail](docs/media/desktop-03-post-detail.png) |
+
+| Messages | Profile |
+| :---: | :---: |
+| ![Desktop messages](docs/media/desktop-04-messages.png) | ![Desktop profile](docs/media/desktop-05-profile.png) |
+
 ## Features
 
 - **Auth** — JWT access (15 min) + rotating refresh tokens (30 days) in httpOnly cookies, Redis-whitelisted; signup, login (email or username), forgot/reset password, change password, email verification (skippable in dev), account deactivation, private accounts.

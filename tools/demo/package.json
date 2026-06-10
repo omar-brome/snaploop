@@ -1,0 +1,14 @@
+{
+  "name": "snaploop-demo-capture",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Captures screenshots, demo video and README GIF from the running app",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "encode": "node encode.mjs"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0",
+    "playwright": "^1.49.0"
+  }
+}

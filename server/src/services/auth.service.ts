@@ -119,9 +119,15 @@ export async function refresh(refreshToken: string | undefined) {
     throw new ApiError(401, 'Invalid refresh token', 'INVALID_REFRESH_TOKEN');
   }
 
-  // Consume-on-use: if the jti is gone the token was already rotated or revoked.
-  const deleted = await redis.del(refreshKey(payload.sub, payload.jti));
-  if (deleted === 0) throw new ApiError(401, 'Refresh token revoked', 'REFRESH_REVOKED');
+  // Consume-on-use with a short grace window: rotating marks the old jti
+  // "used" for 30s instead of deleting it, so concurrent refreshes from a
+  // second tab (or a race on app boot) don't log the user out.
+  const key = refreshKey(payload.sub, payload.jti);
+  const state = await redis.get(key);
+  if (!state) throw new ApiError(401, 'Refresh token revoked', 'REFRESH_REVOKED');
+  if (state !== 'used') {
+    await redis.set(key, 'used', 'EX', 30);
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
