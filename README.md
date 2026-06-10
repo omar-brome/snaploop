@@ -1,0 +1,82 @@
+# Snaploop
+
+A full-stack Instagram-style social platform: feed, stories, reels, direct messages, notifications, explore/search, profiles — built with React 18 + TypeScript on the front and Express + TypeScript + Prisma + PostgreSQL + Redis + Socket.io on the back.
+
+## Features
+
+- **Auth** — JWT access (15 min) + rotating refresh tokens (30 days) in httpOnly cookies, Redis-whitelisted; signup, login (email or username), forgot/reset password, change password, email verification (skippable in dev), account deactivation, private accounts.
+- **Feed & posts** — cursor-paginated home feed, 1–10 media carousel per post, likes with double-tap + optimistic updates, saves/collections, hashtag + @mention parsing, location tags, archive, comments-off, edit/delete, report.
+- **Stories** — 24h-expiring stories with viewer tracking, emoji reactions (delivered as DMs), text/sticker data, highlights, gradient-ring tray.
+- **Reels** — vertical full-screen video feed, like/comment/share, view counts, ≤90s uploads.
+- **Comments** — nested replies (one level), likes, pinning, @mention autocomplete, live updates over WebSocket.
+- **DMs** — 1:1 and group conversations, replies, emoji reactions, unsend, seen receipts, typing indicators, online presence, shared posts/reels.
+- **Notifications** — real-time over Socket.io with per-type preferences, unread badge, mark-all-read.
+- **Explore & search** — masonry explore grid, unified search (users/tags/places), hashtag + location pages, trending hashtags.
+- **Media** — uploads processed with Sharp (resize to 1080px, EXIF stripped, WebP), client-side canvas compression, local-disk storage served at `/uploads` (swappable driver).
+
+## Stack
+
+| Layer | Tech |
+| --- | --- |
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS, React Router v6, TanStack Query, Zustand, Axios, React Hook Form + Zod, Framer Motion, Lucide, socket.io-client |
+| Backend | Node 20, Express 4, TypeScript, Prisma 5, Socket.io, Zod, Multer + Sharp, Nodemailer, bcryptjs, express-rate-limit |
+| Data | PostgreSQL 16, Redis 7 (sessions, presence, notification prefs, pub/sub) |
+| Dev | Docker Compose, tsx, ESLint + Prettier |
+
+## Getting started
+
+Prerequisites: Node 20+, Docker Desktop.
+
+```bash
+# 1. Start PostgreSQL + Redis (host ports 5433/6380 to avoid clashing with local installs)
+docker compose up -d
+
+# 2. Server
+cd server
+cp .env.example .env          # defaults work out of the box
+npm install
+npx prisma migrate dev        # create schema
+npm run seed                  # 20 users, 100 posts, comments, follows, stories, reels, DMs
+npm run dev                   # API on http://localhost:4000
+
+# 3. Client (new terminal)
+cd client
+npm install
+npm run dev                   # app on http://localhost:5173
+```
+
+Log in with **demo / password123** (every seeded account uses the same password).
+
+## Project layout
+
+```
+client/src
+  components/   shared UI kit (Button, Avatar, Modal, skeletons, toasts...)
+  features/     feature modules (feed, stories, reels, dm, ...)
+  hooks/        shared hooks (optimistic like/follow, ...)
+  pages/        route-level components
+  services/     axios instance, socket singleton, API helpers
+  stores/       Zustand stores (auth, ui/theme)
+server/src
+  routes/       Express routers (zod-validated)
+  controllers/  thin request handlers
+  services/     business logic + Prisma queries
+  middleware/   auth, validation, errors, rate limits, upload
+  sockets/      Socket.io auth, rooms, presence, typing
+  jobs/         story expiry cleanup
+server/prisma   schema (22 tables), migrations, seed
+docs/           API contract + code conventions
+```
+
+## API
+
+All endpoints return `{ success, data, meta, error }` and lists use cursor pagination (`?cursor=` → `meta.nextCursor` / `meta.hasMore`). The full endpoint contract lives in [docs/API.md](docs/API.md); conventions in [docs/CONVENTIONS.md](docs/CONVENTIONS.md).
+
+Realtime events: `new_message`, `message_reaction`, `message_deleted`, `messages_seen`, `new_notification`, `story_reaction`, `user_typing`, `user_online`, `user_offline`, `new_comment`.
+
+## Notes
+
+- `bcryptjs` replaces native `bcrypt` so installs need no compiler toolchain (same algorithm).
+- Multer 2.x is used (1.x has known CVEs).
+- Story expiry is enforced in every query and physically cleaned up hourly by a job that spares stories saved to highlights.
+- Rate limits are relaxed automatically in development.

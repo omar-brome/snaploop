@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+uploads/
+.DS_Store
+coverage/
+.turbo/
+client/dist/
+server/dist/
